@@ -9,9 +9,17 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -86,10 +94,34 @@ fun CameraRecognitionScreen(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Texto detectado: ${uiState.recognizedText}",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Texto detectado: ${uiState.recognizedText}",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(
+                        onClick = {
+                            cameraController.cameraSelector =
+                                if (cameraController.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA) {
+                                    CameraSelector.DEFAULT_BACK_CAMERA
+                                } else {
+                                    CameraSelector.DEFAULT_FRONT_CAMERA
+                                }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Cameraswitch,
+                            contentDescription = "Cambiar cámara"
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Girar")
+                    }
+                }
                 Text(
                     text = "Confianza: ${(uiState.confidence * 100f).toInt()}%",
                     style = MaterialTheme.typography.bodyMedium
