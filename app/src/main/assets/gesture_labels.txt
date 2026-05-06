@@ -1,0 +1,34 @@
+A
+B
+C
+D
+E
+F
+G
+H
+I
+J
+K
+L
+M
+N
+O
+P
+Q
+R
+S
+T
+U
+V
+W
+X
+Y
+Z
+Hola
+Gracias
+Por favor
+Buenos dias
+Buenas tardes
+Buenas noches
+Si
+No
