@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AssistChip
@@ -163,18 +164,41 @@ fun AdminTrainingScreen(
             }
         }
 
-        Button(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            onClick = viewModel::toggleCapture,
-            enabled = uiState.detectorReady
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = if (uiState.isCapturing) {
-                    "Detener captura"
-                } else {
-                    "Iniciar captura"
+            Button(
+                modifier = Modifier.weight(1f),
+                onClick = viewModel::toggleCapture,
+                enabled = uiState.detectorReady
+            ) {
+                Text(
+                    text = if (uiState.isCapturing) {
+                        "Detener captura"
+                    } else {
+                        "Iniciar captura"
+                    }
+                )
+            }
+            Button(
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    cameraController.cameraSelector =
+                        if (cameraController.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA) {
+                            CameraSelector.DEFAULT_BACK_CAMERA
+                        } else {
+                            CameraSelector.DEFAULT_FRONT_CAMERA
+                        }
                 }
-            )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Cameraswitch,
+                    contentDescription = "Cambiar cámara"
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Girar")
+            }
         }
 
         Row(
