@@ -3,7 +3,6 @@ package com.umariana.lscbridge.ml
 import android.content.Context
 import com.umariana.lscbridge.domain.model.GestureResult
 import com.umariana.lscbridge.domain.model.HandLandmarks
-import java.io.File
 import kotlin.math.sqrt
 
 class KNNGestureClassifier {
@@ -14,18 +13,9 @@ class KNNGestureClassifier {
 
     fun initialize(context: Context): Boolean {
         return try {
-            // 1. Intentar cargar desde Almacenamiento Interno (capturas nuevas)
-            val internalFile = File(context.filesDir, "training/gestures_dataset.csv")
-            val lines = if (internalFile.exists()) {
-                internalFile.readLines()
-            } else {
-                // 2. Si no existe, intentar cargar desde Assets (el abecedario limpio que incluiremos)
-                try {
-                    context.assets.open("gestures_dataset.csv").bufferedReader().readLines()
-                } catch (e: Exception) {
-                    emptyList()
-                }
-            }
+            // Usar ÚNICAMENTE el dataset "pulido" empaquetado como asset.
+            // (Empaquetado desde app/training/ via sourceSets assets.srcDir("training"))
+            val lines = context.assets.open("dataset_template.csv").bufferedReader().readLines()
 
             if (lines.isEmpty()) return false
             
@@ -36,7 +26,7 @@ class KNNGestureClassifier {
                     try {
                         val parts = line.split(",")
                         if (parts.size < 64) return@mapNotNull null
-                        val label = parts[0]
+                        val label = parts[0].trim()
                         val features = parts.drop(1).map { it.toFloat() }.toFloatArray()
                         Sample(label, features)
                     } catch (e: Exception) {

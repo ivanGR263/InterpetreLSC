@@ -9,6 +9,12 @@ android {
     namespace = "com.umariana.lscbridge"
     compileSdk = 35
 
+    sourceSets {
+        getByName("main") {
+            assets.srcDir("training")
+        }
+    }
+
     defaultConfig {
         applicationId = "com.umariana.lscbridge"
         minSdk = 26
