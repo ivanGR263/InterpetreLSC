@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AssistChip
@@ -214,7 +215,7 @@ fun AdminTrainingScreen(
                     contentDescription = "Guardar CSV"
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Guardar CSV")
+                Text("Guardar")
             }
             Button(
                 modifier = Modifier.weight(1f),
@@ -225,7 +226,19 @@ fun AdminTrainingScreen(
                     contentDescription = "Enviar a WhatsApp"
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Enviar WhatsApp")
+                Text("Compartir")
+            }
+            Button(
+                modifier = Modifier.weight(1f),
+                onClick = { deleteDataset(context) },
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Borrar CSV"
+                )
             }
         }
 
@@ -310,6 +323,19 @@ private fun shareCsvToWhatsApp(context: Context) {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(Intent.createChooser(shareIntent, "Compartir CSV"))
+    }
+}
+
+private fun deleteDataset(context: Context) {
+    val csvFile = File(context.filesDir, "training/gestures_dataset.csv")
+    if (csvFile.exists()) {
+        if (csvFile.delete()) {
+            Toast.makeText(context, "Dataset borrado correctamente", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "No se pudo borrar el archivo", Toast.LENGTH_SHORT).show()
+        }
+    } else {
+        Toast.makeText(context, "El archivo no existe", Toast.LENGTH_SHORT).show()
     }
 }
 

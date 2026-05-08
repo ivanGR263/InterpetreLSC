@@ -5,7 +5,7 @@ import androidx.camera.core.ImageProxy
 import androidx.lifecycle.ViewModel
 import com.umariana.lscbridge.domain.model.GestureResult
 import com.umariana.lscbridge.ml.MediaPipeHandDetector
-import com.umariana.lscbridge.ml.TFLiteGestureClassifier
+import com.umariana.lscbridge.ml.KNNGestureClassifier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +21,7 @@ data class CameraUiState(
 
 class CameraRecognitionViewModel : ViewModel() {
     private val handDetector = MediaPipeHandDetector()
-    private val gestureClassifier = TFLiteGestureClassifier()
+    private val gestureClassifier = KNNGestureClassifier()
 
     private val _uiState = MutableStateFlow(CameraUiState())
     val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
@@ -35,9 +35,11 @@ class CameraRecognitionViewModel : ViewModel() {
             detectorReady = detectorInitialized,
             classifierReady = classifierInitialized,
             statusMessage = if (detectorInitialized && classifierInitialized) {
-                "MediaPipe + TFLite inicializados"
+                "MediaPipe + KNN (CSV) inicializados"
+            } else if (detectorInitialized) {
+                "Detector listo. Asegúrate de que el CSV esté en la carpeta de entrenamiento."
             } else {
-                "Faltan assets ML: hand_landmarker.task o gesture_classifier.tflite"
+                "Error al inicializar detector de manos."
             }
         )
     }
