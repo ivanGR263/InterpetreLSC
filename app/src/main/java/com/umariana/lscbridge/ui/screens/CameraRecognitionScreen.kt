@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -88,22 +89,41 @@ fun CameraRecognitionScreen(
         Card(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(16.dp)
+                .fillMaxWidth()
+                .padding(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                Text(
+                    text = "Gesto detectado",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                )
+                Text(
+                    text = uiState.recognizedText.uppercase(),
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                )
+                
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Texto detectado: ${uiState.recognizedText}",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f)
+                        text = "Confianza: ${(uiState.confidence * 100f).toInt()}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
+                    
                     Button(
                         onClick = {
                             cameraController.cameraSelector =
@@ -112,7 +132,10 @@ fun CameraRecognitionScreen(
                                 } else {
                                     CameraSelector.DEFAULT_FRONT_CAMERA
                                 }
-                        }
+                        },
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
                         Icon(
                             imageVector = Icons.Default.Cameraswitch,
@@ -122,20 +145,17 @@ fun CameraRecognitionScreen(
                         Text("Girar")
                     }
                 }
-                Text(
-                    text = "Confianza: ${(uiState.confidence * 100f).toInt()}%",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "Frames analizados: ${uiState.framesAnalyzed}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = uiState.statusMessage,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                
+                if (uiState.statusMessage.isNotEmpty()) {
+                    Text(
+                        text = uiState.statusMessage,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                    )
+                }
             }
         }
+
     }
 }
 
