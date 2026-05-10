@@ -6,12 +6,19 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -98,6 +105,9 @@ fun CameraRecognitionScreen(
             }
         )
 
+        // GUÍA VISUAL: Bosquejo para ubicar la mano
+        HandGuidelineOverlay()
+
         Card(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -168,6 +178,49 @@ fun CameraRecognitionScreen(
             }
         }
 
+    }
+}
+
+@Composable
+fun HandGuidelineOverlay() {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val width = size.width
+        val height = size.height
+        
+        // Definir un área central para la mano (60% del ancho, 50% del alto)
+        val boxWidth = width * 0.65f
+        val boxHeight = height * 0.50f
+        val left = (width - boxWidth) / 2
+        val top = (height - boxHeight) / 2.5f // Ligeramente arriba del centro
+
+        // Dibujar rectángulo redondeado punteado
+        drawRoundRect(
+            color = Color.White.copy(alpha = 0.5f),
+            topLeft = Offset(left, top),
+            size = Size(boxWidth, boxHeight),
+            cornerRadius = CornerRadius(20.dp.toPx()),
+            style = Stroke(
+                width = 3.dp.toPx(),
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
+            )
+        )
+
+        // Texto de instrucción opcional
+        // (Nota: Dibujar texto en Canvas es complejo, mejor usar un Box/Text encima)
+    }
+    
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            modifier = Modifier.padding(bottom = 200.dp), // Subir un poco el texto
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "UBICA TU MANO AQUÍ",
+                color = Color.White.copy(alpha = 0.8f),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            )
+        }
     }
 }
 
