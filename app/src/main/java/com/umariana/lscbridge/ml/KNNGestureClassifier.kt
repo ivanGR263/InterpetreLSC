@@ -1,6 +1,7 @@
 package com.umariana.lscbridge.ml
 
 import android.content.Context
+import android.util.Log
 import com.umariana.lscbridge.domain.model.GestureResult
 import com.umariana.lscbridge.domain.model.HandLandmarks
 import java.io.File
@@ -11,41 +12,54 @@ class KNNGestureClassifier {
 
     private var samples: List<Sample> = emptyList()
     private val K = 3
-    private val SIMILARITY_THRESHOLD = 0.80f // Ajustable: 0.8 a 0.95 suele ser ideal
+    private val SIMILARITY_THRESHOLD = 0.80f
 
     fun initialize(context: Context): Boolean {
         return try {
-            // Intentar cargar desde almacenamiento interno primero (si el usuario capturó nuevas señas)
-            // Si no existe, cargar el template de los assets.
+            val allLines = mutableListOf<String>()
+
+            // 1. CARGAR SIEMPRE EL DATASET MAESTRO (Assets)
+            // Esto garantiza que el abecedario (A-Z, Ñ) siempre esté presente
+            try {
+                val assetLines = context.assets.open("dataset_template.csv").bufferedReader().readLines()
+                if (assetLines.isNotEmpty()) {
+                    allLines.addAll(assetLines.drop(1)) // Omitir header del asset
+                }
+            } catch (e: Exception) {
+                Log.e("KNN", "Error cargando asset: ${e.message}")
+            }
+
+            // 2. CARGAR DATASET INTERNO (Si existe)
+            // Esto suma las señas nuevas que el usuario haya grabado
             val internalFile = File(context.filesDir, "training/gestures_dataset.csv")
-            val lines = if (internalFile.exists()) {
-                internalFile.readLines()
-            } else {
-                try {
-                    context.assets.open("dataset_template.csv").bufferedReader().readLines()
-                } catch (e: Exception) {
-                    emptyList()
+            if (internalFile.exists()) {
+                val internalLines = internalFile.readLines()
+                if (internalLines.size > 1) {
+                    allLines.addAll(internalLines.drop(1))
                 }
             }
 
-            if (lines.isEmpty()) return false
+            if (allLines.isEmpty()) return false
             
-            samples = lines
-                .drop(1) // Omitir encabezado
+            samples = allLines
                 .filter { it.isNotBlank() }
                 .mapNotNull { line ->
                     try {
                         val parts = line.split(",")
                         if (parts.size < 64) return@mapNotNull null
                         val label = parts[0].trim()
-                        val rawFeatures = parts.drop(1).map { it.toFloat() }.toFloatArray()
                         
-                        // REQUERIMIENTO: Ajuste de Dataset dinámico (Normalización al cargar)
+                        // FILTRO DE SEGURIDAD: Omitir etiquetas obsoletas si se desea
+                        if (label.lowercase() == "biblioteca") return@mapNotNull null
+
+                        val rawFeatures = parts.drop(1).map { it.toFloat() }.toFloatArray()
                         Sample(label, normalizeLandmarks(rawFeatures))
                     } catch (e: Exception) {
                         null
                     }
                 }
+            
+            Log.d("KNN", "Dataset cargado con ${samples.size} muestras.")
             samples.isNotEmpty()
         } catch (e: Exception) {
             false
@@ -53,13 +67,18 @@ class KNNGestureClassifier {
     }
 
     /**
-     * REQUERIMIENTO: Normalización de Punto Cero y Escala Unificada.
-     * Esto hace que el modelo sea independiente del tamaño de la mano y la distancia.
+     * Borra el archivo de entrenamiento interno para limpiar datos viejos.
      */
+    fun resetInternalDataset(context: Context) {
+        val internalFile = File(context.filesDir, "training/gestures_dataset.csv")
+        if (internalFile.exists()) {
+            internalFile.delete()
+            Log.d("KNN", "Dataset interno eliminado correctamente.")
+        }
+    }
+
     private fun normalizeLandmarks(raw: FloatArray): FloatArray {
         val normalized = FloatArray(63)
-        
-        // 1. TRASLACIÓN: Restar coordenadas de la muñeca (puntos 0,1,2) a todos los demás.
         val baseX = raw[0]
         val baseY = raw[1]
         val baseZ = raw[2]
@@ -70,7 +89,6 @@ class KNNGestureClassifier {
             normalized[i * 3 + 2] = raw[i * 3 + 2] - baseZ
         }
 
-        // 2. ESCALA: Dividir por la distancia máxima (Distancia Euclidiana Máxima).
         var maxDist = 0f
         for (i in 0 until 21) {
             val d = sqrt(
@@ -86,13 +104,9 @@ class KNNGestureClassifier {
                 normalized[i] /= maxDist
             }
         }
-
         return normalized
     }
 
-    /**
-     * REQUERIMIENTO: Algoritmo de Comparación Robusto (Similitud de Coseno).
-     */
     private fun cosineSimilarity(vecA: FloatArray, vecB: FloatArray): Float {
         var dotProduct = 0f
         var normA = 0f
@@ -113,7 +127,6 @@ class KNNGestureClassifier {
             return GestureResult("Buscando mano...", 0f, now)
         }
 
-        // Preparar entrada actual
         val inputRaw = FloatArray(63)
         handLandmarks.landmarks.take(21).forEachIndexed { index, landmark ->
             inputRaw[index * 3] = landmark.x
@@ -121,10 +134,8 @@ class KNNGestureClassifier {
             inputRaw[index * 3 + 2] = landmark.z
         }
         
-        // Normalizar entrada con la misma lógica que el dataset
         val inputNormalized = normalizeLandmarks(inputRaw)
 
-        // Comparar similitudes
         val similarities = samples.map { sample ->
             sample.label to cosineSimilarity(inputNormalized, sample.features)
         }.sortedByDescending { it.second }
@@ -132,11 +143,9 @@ class KNNGestureClassifier {
         val bestNeighbors = similarities.take(K)
         val topMatch = bestNeighbors.first()
         
-        // Aplicar umbral de confianza
         return if (topMatch.second < SIMILARITY_THRESHOLD) {
             GestureResult("Identificando...", topMatch.second, now)
         } else {
-            // Votación KNN
             val finalLabel = bestNeighbors.groupingBy { it.first }
                 .eachCount()
                 .maxByOrNull { it.value }?.key ?: topMatch.first
