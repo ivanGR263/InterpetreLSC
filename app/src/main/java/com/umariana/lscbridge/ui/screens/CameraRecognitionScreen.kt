@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.umariana.lscbridge.util.SpeechManager
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -50,6 +51,10 @@ fun CameraRecognitionScreen(
     val cameraExecutor: ExecutorService = remember {
         Executors.newSingleThreadExecutor()
     }
+    
+    // REQUERIMIENTO: Inicializar el motor de TTS de forma segura
+    val speechManager = remember { SpeechManager(context) }
+
     val cameraController = remember {
         LifecycleCameraController(context).apply {
             cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
@@ -59,6 +64,11 @@ fun CameraRecognitionScreen(
                 FrameAnalyzer(onFrame = viewModel::onFrameAnalyzed)
             )
         }
+    }
+
+    // REQUERIMIENTO: Lógica de control de repetición (Cada vez que cambia el texto)
+    LaunchedEffect(uiState.recognizedText) {
+        speechManager.speakResult(uiState.recognizedText)
     }
 
     LaunchedEffect(Unit) {
@@ -73,6 +83,8 @@ fun CameraRecognitionScreen(
         onDispose {
             cameraController.unbind()
             cameraExecutor.shutdown()
+            // REQUERIMIENTO: Liberar el motor de TTS para evitar fugas de memoria
+            speechManager.shutdown()
         }
     }
 
