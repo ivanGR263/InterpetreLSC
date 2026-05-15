@@ -132,7 +132,7 @@ fun HomeScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Usa la cámara para traducir LSC al instante",
+                        text = "Usa la cámara para interpretar LSC al instante",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = darkCharcoal.copy(alpha = 0.7f)
                         ),
