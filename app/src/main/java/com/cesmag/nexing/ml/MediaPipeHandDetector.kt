@@ -43,7 +43,7 @@ class MediaPipeHandDetector {
             )
 
             val landmarksList = result.landmarks()
-            val handednessList = result.handednesses()
+            val handednessList = result.handedness()
             landmarksList.mapIndexed { index, handLandmarks ->
                 val handedness = handednessList
                     .getOrNull(index)
