@@ -31,9 +31,14 @@ class CameraRecognitionViewModel : ViewModel() {
     private var framesWithLowLight = 0
     private var appContext: Context? = null
     
-    // REQUERIMIENTO: Control de tiempo para sincronización de 1.5s
+    // REQUERIMIENTO: Control de tiempo y estabilidad
     private var lastUpdateTime = 0L
     private val updateCooldownMs = 1500L
+    
+    // FILTRO DE ESTABILIDAD: Evita falsos positivos en movimiento
+    private var stabilityCounter = 0
+    private var lastDetectedLabel = ""
+    private val MIN_STABILITY_FRAMES = 5 
 
     private val _uiState = MutableStateFlow(CameraUiState())
     val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
@@ -107,14 +112,24 @@ class CameraRecognitionViewModel : ViewModel() {
         if (tips.size >= 2) tips.add("Sugerencia: Limpia el lente de tu cámara")
 
         val currentTime = System.currentTimeMillis()
-        val canUpdateText = (currentTime - lastUpdateTime) > updateCooldownMs
-        val isSignificantResult = result.label != "Buscando mano..." && result.label != "Identificando..."
         
-        // REQUERIMIENTO: Solo actualizar el texto si ha pasado el lapso de 1.5s 
-        // o si es un cambio de estado crítico (como perder la mano)
-        val newRecognizedText = if (canUpdateText || !isSignificantResult) {
-            if (isSignificantResult && _uiState.value.recognizedText != result.label) {
+        // Lógica de Estabilidad: Solo aceptamos el gesto si se mantiene constante
+        if (result.label == lastDetectedLabel && result.label != "Buscando mano...") {
+            stabilityCounter++
+        } else {
+            stabilityCounter = 0
+            lastDetectedLabel = result.label
+        }
+
+        val isStable = stabilityCounter >= MIN_STABILITY_FRAMES
+        val canUpdateText = (currentTime - lastUpdateTime) > updateCooldownMs
+        val isStateMessage = result.label == "Buscando mano..." || result.label == "Identificando..."
+        
+        // Solo actualizamos si el gesto es estable Y pasó el tiempo de espera
+        val newRecognizedText = if ((isStable && canUpdateText) || isStateMessage) {
+            if (!isStateMessage && _uiState.value.recognizedText != result.label) {
                 lastUpdateTime = currentTime
+                stabilityCounter = 0 // Reiniciamos para la siguiente letra
             }
             result.label
         } else {
