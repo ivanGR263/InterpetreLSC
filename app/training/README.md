@@ -20,13 +20,15 @@ Usa un CSV con el formato:
 - Columna 1: `label` (nombre del gesto, ejemplo `hola`)
 - Columnas 2..64: `f0..f62` (21 landmarks * x,y,z = 63 valores)
 
-Tienes plantilla base en:
+Tienes plantillas base por cámara en:
 
-- `app/training/dataset_template.csv`
+- `app/training/dataset_template_front.csv` (cámara frontal)
+- `app/training/dataset_template_back.csv` (cámara trasera)
 
-Guarda tu dataset final, por ejemplo:
+Al capturar en modo administrador, la app guarda en el dispositivo:
 
-- `app/training/gestures_dataset.csv`
+- `gestures_dataset_front.csv`
+- `gestures_dataset_back.csv`
 
 Recomendaciones:
 
