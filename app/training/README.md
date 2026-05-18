@@ -41,7 +41,7 @@ Recomendaciones:
 Ejecuta:
 
 ```bash
-python app/training/train_gesture_classifier.py --data app/training/gestures_dataset.csv
+python app/training/train_gesture_classifier.py --data app/training/dataset_template_front.csv
 ```
 
 El script genera automaticamente:
@@ -53,7 +53,7 @@ Opciones utiles:
 
 ```bash
 python app/training/train_gesture_classifier.py \
-  --data app/training/gestures_dataset.csv \
+  --data app/training/dataset_template_front.csv \
   --epochs 50 \
   --batch-size 32 \
   --val-ratio 0.2
