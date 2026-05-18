@@ -20,7 +20,7 @@ data class CameraUiState(
     val classifierReady: Boolean = false,
     val activeCamera: CameraDataset = CameraDataset.FRONT,
     val statusMessage: String = "Cámara lista",
-    val environmentalTips: List<String> = emptyList()
+    val environmentalTips: List<String> = emptyList(),
 )
 
 class CameraRecognitionViewModel : ViewModel() {
@@ -33,7 +33,7 @@ class CameraRecognitionViewModel : ViewModel() {
     
     // REQUERIMIENTO: Control de tiempo para sincronización de 1.5s
     private var lastUpdateTime = 0L
-    private val UPDATE_COOLDOWN_MS = 1500L
+    private val updateCooldownMs = 1500L
 
     private val _uiState = MutableStateFlow(CameraUiState())
     val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
@@ -99,7 +99,7 @@ class CameraRecognitionViewModel : ViewModel() {
             if (framesWithoutHand > 20) tips.add("Mano no detectada: ubícala dentro del cuadro")
         } else {
             framesWithoutHand = 0
-            if (result.confidence < 0.6f && result.label != "Buscando mano...") {
+            if ((result.confidence < 0.6f) && (result.label != "Buscando mano...")) {
                 tips.add("Seña poco clara: intenta mover un poco la mano")
             }
         }
@@ -107,7 +107,7 @@ class CameraRecognitionViewModel : ViewModel() {
         if (tips.size >= 2) tips.add("Sugerencia: Limpia el lente de tu cámara")
 
         val currentTime = System.currentTimeMillis()
-        val canUpdateText = (currentTime - lastUpdateTime) > UPDATE_COOLDOWN_MS
+        val canUpdateText = (currentTime - lastUpdateTime) > updateCooldownMs
         val isSignificantResult = result.label != "Buscando mano..." && result.label != "Identificando..."
         
         // REQUERIMIENTO: Solo actualizar el texto si ha pasado el lapso de 1.5s 

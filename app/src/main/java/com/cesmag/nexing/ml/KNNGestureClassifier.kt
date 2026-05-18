@@ -9,12 +9,12 @@ import java.io.File
 import kotlin.math.sqrt
 
 class KNNGestureClassifier {
-    private data class Sample(val label: String, val features: FloatArray)
+    private class Sample(val label: String, val features: FloatArray)
 
     private var samples: List<Sample> = emptyList()
     private var activeCamera: CameraDataset = CameraDataset.FRONT
-    private val K = 3
-    private val SIMILARITY_THRESHOLD = 0.80f
+    private val kCount = 3
+    private val similarityThreshold = 0.80f
 
     fun initialize(context: Context, camera: CameraDataset = CameraDataset.FRONT): Boolean {
         activeCamera = camera
@@ -22,12 +22,10 @@ class KNNGestureClassifier {
     }
 
     fun switchCamera(context: Context, camera: CameraDataset): Boolean {
-        if (camera == activeCamera && samples.isNotEmpty()) return true
+        if ((camera == activeCamera) && samples.isNotEmpty()) return true
         activeCamera = camera
         return loadSamples(context, camera)
     }
-
-    fun activeCamera(): CameraDataset = activeCamera
 
     private fun loadSamples(context: Context, camera: CameraDataset): Boolean {
         return try {
@@ -55,6 +53,7 @@ class KNNGestureClassifier {
             if (allLines.isEmpty()) return false
 
             samples = allLines
+                .asSequence()
                 .filter { it.isNotBlank() }
                 .mapNotNull { line ->
                     try {
@@ -66,28 +65,18 @@ class KNNGestureClassifier {
                             .replace("±", "")
                             .trim()
                         if (label.isEmpty() || label.lowercase() == "biblioteca") return@mapNotNull null
-                        val rawFeatures = parts.drop(1).map { it.toFloat() }.toFloatArray()
+                        val rawFeatures = parts.asSequence().drop(1).map { it.toFloat() }.toList().toFloatArray()
                         Sample(label, normalizeLandmarks(rawFeatures))
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         null
                     }
                 }
+                .toList()
 
             Log.d("KNN", "Dataset ${camera.fileSuffix} cargado con ${samples.size} muestras.")
             samples.isNotEmpty()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
-        }
-    }
-
-    fun resetInternalDataset(context: Context, camera: CameraDataset) {
-        val internalFile = File(context.filesDir, "training/${camera.internalFileName}")
-        if (internalFile.exists()) {
-            internalFile.delete()
-            Log.d("KNN", "Dataset interno ${camera.fileSuffix} eliminado.")
-        }
-        if (camera == activeCamera) {
-            loadSamples(context, camera)
         }
     }
 
@@ -106,9 +95,9 @@ class KNNGestureClassifier {
         var maxDist = 0f
         for (i in 0 until 21) {
             val d = sqrt(
-                normalized[i * 3] * normalized[i * 3] +
-                    normalized[i * 3 + 1] * normalized[i * 3 + 1] +
-                    normalized[i * 3 + 2] * normalized[i * 3 + 2]
+                (normalized[i * 3] * normalized[i * 3]) +
+                    (normalized[i * 3 + 1] * normalized[i * 3 + 1]) +
+                    (normalized[i * 3 + 2] * normalized[i * 3 + 2])
             )
             if (d > maxDist) maxDist = d
         }
@@ -156,10 +145,10 @@ class KNNGestureClassifier {
             sample.label to cosineSimilarity(inputNormalized, sample.features)
         }.sortedByDescending { it.second }
 
-        val bestNeighbors = similarities.take(K)
+        val bestNeighbors = similarities.take(kCount)
         val topMatch = bestNeighbors.first()
 
-        return if (topMatch.second < SIMILARITY_THRESHOLD) {
+        return if (topMatch.second < similarityThreshold) {
             GestureResult("Identificando...", topMatch.second, now)
         } else {
             val finalLabel = bestNeighbors.groupingBy { it.first }
