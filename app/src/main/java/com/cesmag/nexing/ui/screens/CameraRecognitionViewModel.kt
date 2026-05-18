@@ -48,7 +48,11 @@ class CameraRecognitionViewModel : ViewModel() {
             detectorReady = detectorInitialized,
             classifierReady = classifierInitialized,
             activeCamera = CameraDataset.FRONT,
-            statusMessage = statusForInit(detectorInitialized, classifierInitialized, CameraDataset.FRONT)
+            statusMessage = when {
+                detectorInitialized && classifierInitialized -> "MediaPipe + KNN (${CameraDataset.FRONT.displayName})"
+                detectorInitialized -> "Detector listo. Falta dataset ${CameraDataset.FRONT.fileSuffix}."
+                else -> "Error al inicializar detector de manos."
+            }
         )
     }
 
@@ -128,16 +132,6 @@ class CameraRecognitionViewModel : ViewModel() {
                 "${_uiState.value.activeCamera.displayName} · Sin mano detectada"
             }
         )
-    }
-
-    private fun statusForInit(
-        detectorReady: Boolean,
-        classifierReady: Boolean,
-        camera: CameraDataset
-    ): String = when {
-        detectorReady && classifierReady -> "MediaPipe + KNN (${camera.displayName})"
-        detectorReady -> "Detector listo. Falta dataset ${camera.fileSuffix}."
-        else -> "Error al inicializar detector de manos."
     }
 
     private fun calculateAverageBrightness(image: ImageProxy): Double {
