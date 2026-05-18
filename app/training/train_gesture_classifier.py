@@ -38,7 +38,7 @@ class Dataset:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Entrena y exporta modelo TFLite para LSCBridge."
+        description="Entrena y exporta modelo TFLite para NEXING."
     )
     parser.add_argument(
         "--data",
@@ -240,7 +240,7 @@ def main() -> None:
 
     print(f"Modelo exportado en: {model_out}")
     print(f"Etiquetas exportadas en: {labels_out}")
-    print("Listo para usar en LSCBridge.")
+    print("Listo para usar en NEXING.")
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ Este modulo permite que una persona administradora entrene el modelo de gestos y
 ## 1) Requisitos en computador
 
 - Python 3.10+ instalado.
-- Estar en la raiz del proyecto `LSCCONNECT`.
+- Estar en la raiz del proyecto `NEXING`.
 
 Instalar dependencias:
 

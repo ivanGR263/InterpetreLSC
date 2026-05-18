@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.umariana.lscbridge"
+    namespace = "com.cesmag.nexing"
     compileSdk = 35
 
     sourceSets {
@@ -16,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.umariana.lscbridge"
+        applicationId = "com.cesmag.nexing"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

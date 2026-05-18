@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LSCCONNECT"
+rootProject.name = "NEXING"
 include(":app")
