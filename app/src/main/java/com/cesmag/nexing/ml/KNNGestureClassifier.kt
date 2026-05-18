@@ -61,7 +61,11 @@ class KNNGestureClassifier {
                         val parts = line.split(",")
                         if (parts.size < 64) return@mapNotNull null
                         val label = parts[0].trim()
-                        if (label.lowercase() == "biblioteca") return@mapNotNull null
+                            .replace("+", "")
+                            .replace("-", "")
+                            .replace("±", "")
+                            .trim()
+                        if (label.isEmpty() || label.lowercase() == "biblioteca") return@mapNotNull null
                         val rawFeatures = parts.drop(1).map { it.toFloat() }.toFloatArray()
                         Sample(label, normalizeLandmarks(rawFeatures))
                     } catch (e: Exception) {
