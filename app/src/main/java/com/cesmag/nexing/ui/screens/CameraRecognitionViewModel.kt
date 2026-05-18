@@ -30,6 +30,10 @@ class CameraRecognitionViewModel : ViewModel() {
     private var framesWithoutHand = 0
     private var framesWithLowLight = 0
     private var appContext: Context? = null
+    
+    // REQUERIMIENTO: Control de tiempo para sincronización de 1.5s
+    private var lastUpdateTime = 0L
+    private val UPDATE_COOLDOWN_MS = 1500L
 
     private val _uiState = MutableStateFlow(CameraUiState())
     val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
@@ -98,8 +102,23 @@ class CameraRecognitionViewModel : ViewModel() {
 
         if (tips.size >= 2) tips.add("Sugerencia: Limpia el lente de tu cámara")
 
+        val currentTime = System.currentTimeMillis()
+        val canUpdateText = (currentTime - lastUpdateTime) > UPDATE_COOLDOWN_MS
+        val isSignificantResult = result.label != "Buscando mano..." && result.label != "Identificando..."
+        
+        // REQUERIMIENTO: Solo actualizar el texto si ha pasado el lapso de 1.5s 
+        // o si es un cambio de estado crítico (como perder la mano)
+        val newRecognizedText = if (canUpdateText || !isSignificantResult) {
+            if (isSignificantResult && _uiState.value.recognizedText != result.label) {
+                lastUpdateTime = currentTime
+            }
+            result.label
+        } else {
+            _uiState.value.recognizedText
+        }
+
         _uiState.value = _uiState.value.copy(
-            recognizedText = result.label,
+            recognizedText = newRecognizedText,
             confidence = result.confidence,
             framesAnalyzed = nextCount,
             environmentalTips = tips,

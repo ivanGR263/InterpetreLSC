@@ -11,7 +11,7 @@ class SpeechManager(context: Context) : TextToSpeech.OnInitListener {
     
     private var lastSpokenText: String? = null
     private var lastSpokenTime: Long = 0L
-    private val MIN_TIME_BETWEEN_WORDS = 2500L // Aumentado a 2.5 segundos para evitar que se trabe
+    private val MIN_TIME_BETWEEN_WORDS = 1500L // REQUERIMIENTO: Sincronizado a 1.5s
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
@@ -27,8 +27,7 @@ class SpeechManager(context: Context) : TextToSpeech.OnInitListener {
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("SpeechManager", "El idioma español no está soportado en este dispositivo")
             } else {
-                // Velocidad ligeramente más lenta (0.9f) para mayor claridad si se traba
-                tts?.setSpeechRate(0.95f) 
+                tts?.setSpeechRate(1.0f) // Velocidad normal para 1.5s
                 isReady = true
                 Log.d("SpeechManager", "Motor TTS configurado correctamente en Español")
             }
@@ -41,21 +40,28 @@ class SpeechManager(context: Context) : TextToSpeech.OnInitListener {
      * Intenta decir el texto proporcionado respetando las reglas de repetición.
      */
     fun speakResult(text: String) {
-        if (!isReady || text.isBlank() || isStatusMessage(text)) return
+        // REQUERIMIENTO: Si hay un error o no está listo, podríamos reportarlo
+        if (!isReady) {
+            Log.e("SpeechManager", "TTS no listo para: $text")
+            return
+        }
+        
+        if (text.isBlank() || isStatusMessage(text)) return
 
         val currentTime = System.currentTimeMillis()
         val timeElapsed = currentTime - lastSpokenTime
         
-        // NUEVA LÓGICA MÁS ESTRICTA:
-        // Habla solo si:
-        // 1. La letra es distinta a la última que se habló exitosamente.
-        // 2. Y ADEMÁS, han pasado al menos 2.5 segundos desde que terminó de hablar.
-        
-        if (text != lastSpokenText && timeElapsed > MIN_TIME_BETWEEN_WORDS) {
-            // QUEUE_FLUSH asegura que si hay algo pendiente, se borre antes de decir lo nuevo
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "NexingSpeechID")
-            lastSpokenText = text
-            lastSpokenTime = currentTime
+        // REQUERIMIENTO: Sincronización estricta de 1.5s
+        if (text != lastSpokenText && timeElapsed >= MIN_TIME_BETWEEN_WORDS) {
+            // Usamos QUEUE_FLUSH para que el audio actual sea exactamente lo que muestra el texto
+            val result = tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "NexingSpeechID")
+            
+            if (result == TextToSpeech.ERROR) {
+                Log.e("SpeechManager", "Error al ejecutar speak() para: $text")
+            } else {
+                lastSpokenText = text
+                lastSpokenTime = currentTime
+            }
         }
     }
 
