@@ -80,3 +80,24 @@ python app/training/train_gesture_classifier.py \
 ---
 
 Nota: este entrenamiento es offline en computador. La app Android usa el modelo ya exportado para inferencia en tiempo real.
+
+# Planificación y Resultados Finales (Abril 2024)
+
+## Modelo MoSCoW
+Esta planificación refleja el estado del proyecto para la entrega final del 19 de abril.
+
+| Prioridad | Tarea Técnica | Estado |
+| :--- | :--- | :--- |
+| **Must Have** | Detección de landmarks con MediaPipe y TFLite | Completado |
+| **Must Have** | Traducción instantánea a Texto y Voz (TTS) | Completado |
+| **Should Have** | Modo Administrador para captura de datasets | Completado |
+| **Should Have** | Guías visuales y sugerencias ambientales | Completado |
+| **Could Have** | Compartir datasets vía WhatsApp | Completado |
+| **Won't Have** | Entrenamiento en el dispositivo (Edge Training) | Postergado |
+
+## Resumen Ejecutivo para Presentación
+- **Introducción:** NEXING es una app de asistencia social que traduce lengua de señas a texto y voz en tiempo real usando IA.
+- **Objetivos:** Facilitar la comunicación inclusiva mediante visión artificial optimizada para móviles.
+- **Resultados:** Detección estable con +85% de confianza y sistema de expansión de vocabulario funcional.
+- **Conclusiones:** El uso de metodologías ágiles y el enfoque MoSCoW permitieron priorizar la estabilidad del núcleo de IA para la entrega final.
+
